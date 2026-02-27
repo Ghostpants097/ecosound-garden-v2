@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  # Frontend - Next.js with TensorFlow.js
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      - backend
+    networks:
+      - ecosound-network
+
+  # Backend - FastAPI ML Server
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://ecosound:password@db:5432/ecosound
+      - ML_MODEL_PATH=/models
+      - AUDIO_UPLOAD_PATH=/uploads
+    volumes:
+      - ./backend/models:/models
+      - ./backend/uploads:/uploads
+    depends_on:
+      - db
+    networks:
+      - ecosound-network
+
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=ecosound
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=ecosound
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - ecosound-network
+
+  # Redis Cache (optional)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - ecosound-network
+
+volumes:
+  postgres_data:
+
+networks:
+  ecosound-network:
+    driver: bridge
