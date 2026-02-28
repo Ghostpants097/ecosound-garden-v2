@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: ecosound-api
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: "pip install -r api/requirements.txt"
+    startCommand: "cd api && uvicorn main:app --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: ENVIRONMENT
+        value: production
+      - key: CORS_ORIGINS
+        value: https://ecosound-garden.vercel.app
